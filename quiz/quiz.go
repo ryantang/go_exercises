@@ -5,7 +5,6 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -42,12 +41,12 @@ func main() {
 }
 
 func loadCSV(csvFile string) [][]string {
-	data, err := ioutil.ReadFile(csvFile)
+	file, err := os.Open(csvFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	r := csv.NewReader(strings.NewReader(string(data)))
+	r := csv.NewReader(file)
 	records, err := r.ReadAll()
 
 	if err != nil {
