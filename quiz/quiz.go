@@ -8,10 +8,12 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
-	quizCSV := flag.String("file", "problems.csv", "Quiz CSV file in 'question,answer' format")
+	quizCSV := flag.String("f", "problems.csv", "Quiz CSV file in 'question,answer' format")
+	quizTimer := flag.String("t", "5", "Number of seconds alloted in this quiz")
 	flag.Parse()
 
 	records := loadCSV(*quizCSV)
@@ -25,6 +27,19 @@ func main() {
 	correctAnswers := 0
 	totalQuestions := len(records)
 	consoleReader := bufio.NewReader(os.Stdin)
+
+	seconds, err := time.ParseDuration(*quizTimer + "s")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	timer := time.NewTimer(seconds)
+
+	go func() {
+		<-timer.C
+		fmt.Println("\nRan out of time. Corect answers: ", correctAnswers, "/", totalQuestions)
+		os.Exit(0)
+	}()
 
 	for _, s := range records {
 		fmt.Print(s[0], ": ")
