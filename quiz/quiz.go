@@ -13,7 +13,7 @@ import (
 
 func main() {
 	quizCSV := flag.String("f", "problems.csv", "Quiz CSV file in 'question,answer' format")
-	quizTimer := flag.String("t", "5", "Number of seconds alloted in this quiz")
+	quizTimer := flag.String("s", "5", "Number of seconds alloted in this quiz")
 	flag.Parse()
 
 	records := loadCSV(*quizCSV)
@@ -33,6 +33,9 @@ func main() {
 		log.Fatal(err)
 	}
 
+	fmt.Printf("Timer set to %s. Press enter to start quiz.", seconds)
+
+	_, _ = consoleReader.ReadString('\n')
 	timer := time.NewTimer(seconds)
 
 	go func() {
