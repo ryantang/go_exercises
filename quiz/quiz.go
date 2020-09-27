@@ -13,7 +13,7 @@ import (
 
 func main() {
 	quizCSV := flag.String("f", "problems.csv", "Quiz CSV file in 'question,answer' format")
-	quizTimer := flag.String("s", "5", "Number of seconds alloted in this quiz")
+	quizTimer := flag.String("s", "30", "Number of seconds alloted in this quiz")
 	flag.Parse()
 
 	records := loadCSV(*quizCSV)
@@ -36,13 +36,8 @@ func main() {
 	fmt.Printf("Timer set to %s. Press enter to start quiz.", seconds)
 
 	_, _ = consoleReader.ReadString('\n')
-	timer := time.NewTimer(seconds)
 
-	go func() {
-		<-timer.C
-		fmt.Println("\nRan out of time. Corect answers: ", correctAnswers, "/", totalQuestions)
-		os.Exit(0)
-	}()
+	go runTimer(seconds, &correctAnswers, totalQuestions)
 
 	for _, s := range records {
 		fmt.Print(s[0], ": ")
@@ -56,6 +51,14 @@ func main() {
 	}
 
 	fmt.Print("Correct answers: ", correctAnswers, "/", totalQuestions, "\n")
+}
+
+func runTimer(waitTime time.Duration, correctAnswers *int, totalQuestions int) {
+	timer := time.NewTimer(waitTime)
+
+	<-timer.C
+	fmt.Println("\nRan out of time. Corect answers: ", *correctAnswers, "/", totalQuestions)
+	os.Exit(0)
 }
 
 func loadCSV(csvFile string) [][]string {
