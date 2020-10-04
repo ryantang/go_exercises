@@ -71,5 +71,72 @@ As a bonus exercises you can also...
 1. Add string trimming and cleanup to help ensure that correct answers with extra whitespace, capitalization, etc are not considered incorrect. *Hint: Check out the [strings](https://golang.org/pkg/strings/) package.*
 2. Add an option (a new flag) to shuffle the quiz order each time it is run.
 
+## Reflections
 
+Things that I learned from this exercise.
+
+### In this exercise I got to work with
+
+* Flags
+* Strings
+* Opening Files
+* Go's CSV Package
+* A simple usage of goroutines and channels
+* Timer
+* Pointers (I mainly coded in Ruby before and didn't use pointers much.)
+
+### Flags
+
+I was a bit disappointed that the flags library didn't seem to offer both the short form (e.g. -f filename) and the long form (e.g. --file filename) option. It seems like you can use any option you want, but the flags only use the single dash (e.g. -f or -file).
+
+I'd also forget to call `flag.Parse()`, and wonder why it wasn't working.
+
+### Goroutines, functions, and channels
+
+Creating concurrency in Go is as simple as running `go <function>`, which immediately kicks off the function in parallel. Examples on the Internet shows function inline, which looks something like this:
+
+```
+func main(){
+  //a bunch of code here
+  go func(waitTime time.Duration, correctAnswers *int, totalQuestions int) {
+    timer := time.NewTimer(waitTime)
+
+    <-timer.C
+    fmt.Println("\nRan out of time. Corect answers: ", *correctAnswers, "/", totalQuestions)
+    os.Exit(0)
+  }
+  // the rest of main's code
+}
+```
+
+After a bunch of reading about functions, I learned that
+0. This is called an "anonymous function", because the function is not named.
+0. Functions are a first class value in Go. In this case (i.e. `go func(waitTime ...) {...}`, we are passing a function (i.e. `func (waitTime...) {...}` to another function (i.e. `go`)
+0. The syntax `<-timer.C` creates a blocking channel. This means that the rest of this goroutine waits for the timer to finish before moving on to the `fmt.Println()` statement.
+
+I thought this inlined anonymous function made my main function look bloated. So, I pulled out a separate function:
+
+```
+func main(){
+// a bunch of code
+	go runTimer(seconds, &correctAnswers, totalQuestions)
+// the rest of the code
+}
+
+func runTimer(waitTime time.Duration, correctAnswers *int, totalQuestions int) {
+	timer := time.NewTimer(waitTime)
+
+	<-timer.C
+	fmt.Println("\nRan out of time. Corect answers: ", *correctAnswers, "/", totalQuestions)
+	os.Exit(0)
+}
+```
+
+From a readability standpoint, I prefer the named function (runTimer) as opposed to the anonymous function we had above.
+
+### Working with files
+
+Go has a concept called `io.Reader` that I'm still trying to understand. Documentation says that it's in interface that has a `Read` method. But the important thing here is that the CSV package takes input in the type of `io.Reader`. My early implementation had me reading in data from the file using `ioutil.Readfile(csvfile)`, and then converting it back into `io.Reader` using `strings.NewReader(string(data))`. When I learned that `os.Open(csvfile)` returned an `io.Reader`, I was able to save a bunch of unnecessary steps.
+
+As I tried to wrap my head around this concept of an `io.Reader`, my coworker described it as "a thin wrapper around a file descriptor". I thought that was interesting
 
